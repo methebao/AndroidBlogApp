@@ -29,6 +29,7 @@ dependencies {
     implementation 'com.google.firebase:firebase-core:16.0.9'
     implementation 'com.google.firebase:firebase-database:16.0.4'
     implementation 'com.firebaseui:firebase-ui-database:0.4.0'
+    implementation 'com.facebook.android:facebook-android-sdk:4.+'
 
 
     implementation 'com.squareup.picasso:picasso:2.5.0'

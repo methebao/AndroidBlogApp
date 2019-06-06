@@ -1,4 +1,4 @@
-package com.example.androidblogapp;
+package com.example.androidblogapp.Activities;
 
 import android.content.Intent;
 import android.net.Uri;
@@ -13,6 +13,9 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.Toast;
 
+import com.example.androidblogapp.Models.Post;
+import com.example.androidblogapp.Models.User;
+import com.example.androidblogapp.R;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
@@ -28,7 +31,7 @@ import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 
 
-public class PostActivity extends AppCompatActivity {
+public class AddPostActivity extends AppCompatActivity {
 
 
     private ImageButton imageBtn;
@@ -41,7 +44,7 @@ public class PostActivity extends AppCompatActivity {
     private FirebaseDatabase database;
     private DatabaseReference databaseRef;
     private FirebaseAuth mAuth;
-    private DatabaseReference mDatabaseUsers;
+    private DatabaseReference mDatabaseUser;
     private FirebaseUser mCurrentUser;
 
 
@@ -58,7 +61,7 @@ public class PostActivity extends AppCompatActivity {
         databaseRef = database.getInstance().getReference().child("posts");
         mAuth = FirebaseAuth.getInstance();
         mCurrentUser = mAuth.getCurrentUser();
-        mDatabaseUsers = FirebaseDatabase.getInstance().getReference().child("users").child(mCurrentUser.getUid());
+        mDatabaseUser = FirebaseDatabase.getInstance().getReference().child("users");
         imageBtn = findViewById(R.id.imageBtn);
 
 
@@ -76,7 +79,7 @@ public class PostActivity extends AppCompatActivity {
         postBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Toast.makeText(PostActivity.this, "POSTING...", Toast.LENGTH_LONG).show();
+                Toast.makeText(AddPostActivity.this, "POSTING...", Toast.LENGTH_LONG).show();
                 final String PostTitle = textTitle.getText().toString().trim();
                 final String PostDesc = textDesc.getText().toString().trim();
                 // do a check for empty fields
@@ -88,50 +91,55 @@ public class PostActivity extends AppCompatActivity {
                             @SuppressWarnings("VisibleForTests")
                             //getting the post image download url
                             final Task<Uri> downloadUrl = taskSnapshot.getMetadata().getReference().getDownloadUrl();
-                            Log.v("DownloadURL",downloadUrl.toString() );
+                            Log.v("DownloadURL", downloadUrl.toString());
 
                             downloadUrl.addOnSuccessListener(new OnSuccessListener<Uri>() {
                                 @Override
                                 public void onSuccess(Uri uri) {
                                     Toast.makeText(getApplicationContext(), "Succesfully Uploaded", Toast.LENGTH_SHORT).show();
-                                    final DatabaseReference newPost = databaseRef.push();
+                                    final DatabaseReference newPostRef = databaseRef.push();
                                     //adding post contents to database reference
                                     final String imageURL = uri.toString();
-                                    mDatabaseUsers.addValueEventListener(new ValueEventListener() {
+                                    mDatabaseUser.child(mCurrentUser.getUid()).addValueEventListener(new ValueEventListener() {
                                         @Override
-                                        public void onDataChange(DataSnapshot dataSnapshot) {
-                                            newPost.child("title").setValue(PostTitle);
-                                            newPost.child("desc").setValue(PostDesc);
-                                            newPost.child("imageUrl").setValue(imageURL);
-                                            newPost.child("uid").setValue(mCurrentUser.getUid());
-                                            newPost.child("username").setValue(dataSnapshot.child("name").getValue())
-                                                    .addOnCompleteListener(new OnCompleteListener<Void>() {
-                                                        @Override
-                                                        public void onComplete(@NonNull Task<Void> task) {
-                                                            if (task.isSuccessful()) {
-                                                                Intent intent = new Intent(PostActivity.this, MainActivity.class);
-                                                                startActivity(intent);
-                                                            }
-                                                        }
-                                                    });
+                                        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                            User user = dataSnapshot.getValue(User.class);
+                                            Post newPost = new Post(PostTitle,PostDesc,imageURL,mCurrentUser.getUid(),user.getFullName(),mCurrentUser.getPhotoUrl().toString());
+                                            addNewPost(newPostRef,newPost);
+
                                         }
 
                                         @Override
-                                        public void onCancelled(DatabaseError databaseError) {
+                                        public void onCancelled(@NonNull DatabaseError databaseError) {
+
                                         }
                                     });
+
+
                                 }
                             });
-
-
                         }
+
                     });
+
+
                 }
             }
         });
-
-
     }
+    private void addNewPost(DatabaseReference newPostRef, Post post) {
+
+        newPostRef.child("title").setValue(post.getTitle());
+        newPostRef.child("desc").setValue(post.getDesc());
+        newPostRef.child("imageUrl").setValue(post.getImageUrl());
+        newPostRef.child("uid").setValue(post.getUid());
+        newPostRef.child("userName").setValue(post.getUserName());
+        newPostRef.child("timeStamp").setValue(post.getTimeStamp());
+        newPostRef.child("userPhoto").setValue(post.getUserPhoto());
+        Intent intent = new Intent(AddPostActivity.this, MainActivity.class);
+        startActivity(intent);
+    }
+
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {

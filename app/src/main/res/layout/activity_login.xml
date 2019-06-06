@@ -4,7 +4,7 @@
     android:layout_height="match_parent"
     xmlns:tools="http://schemas.android.com/tools"
     android:fitsSystemWindows="true"
-    tools:context=".LoginActivity">
+    tools:context=".Activities.LoginActivity">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -74,15 +74,15 @@
 
         <!-- Link to Login Screen -->
 
-        <Button
-            android:id="@+id/btn_connect_facebook"
-            android:layout_width="match_parent"
+        <com.facebook.login.widget.LoginButton
+            android:id="@+id/facebook_login_button"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="20dip"
-            android:background="@color/design_default_color_primary"
-            android:text="Continue With Facebook"
-            android:textAllCaps="false"
-            android:textSize="15dp" />
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="38dp"
+            android:layout_alignParentTop="true"
+            android:layout_centerHorizontal="true" />
+
     </LinearLayout>
 
     <ProgressBar
